@@ -54,19 +54,19 @@ public:
   /**
    * @override{Storage}
    * Read count number of bytes from SRAM address to buffer.
-   * @param[in] dest destination buffer pointer.
+   * @param[in] dst destination buffer pointer.
    * @param[in] src source memory address on device.
    * @param[in] count number of bytes to read from device.
    * @return number of bytes read or negative error code.
    */
-  virtual int read(void* dest, uint32_t src, size_t count)
+  virtual int read(void* dst, uint32_t src, size_t count)
   {
-    uint8_t* header = (uint8_t*) &src;
+    uint8_t* command = (uint8_t*) &src;
     src = __builtin_bswap32(src);
-    header[0] = READ;
+    *command = READ;
     acquire();
-    write(header, sizeof(src));
-    read(dest, count);
+    write(&src, sizeof(src));
+    read(dst, count);
     release();
     return (count);
   }
@@ -74,18 +74,18 @@ public:
   /**
    * @override{Storage}
    * Write count number of bytes to SRAM address from buffer.
-   * @param[in] dest destination memory address on device.
+   * @param[in] dst destination memory address on device.
    * @param[in] src source buffer pointer.
    * @param[in] count number of bytes to write to device.
    * @return number of bytes written or negative error code.
    */
-  virtual int write(uint32_t dest, const void* src, size_t count)
+  virtual int write(uint32_t dst, const void* src, size_t count)
   {
-    uint8_t* header = (uint8_t*) &dest;
-    dest = __builtin_bswap32(dest);
-    header[0] = WRITE;
+    uint8_t* command = (uint8_t*) &dst;
+    dst = __builtin_bswap32(dst);
+    *command = WRITE;
     acquire();
-    write(header, sizeof(dest));
+    write(&dst, sizeof(dst));
     write(src, count);
     release();
     return (count);

@@ -1,5 +1,6 @@
 #include "TWI.h"
 #include "Storage.h"
+#include "Driver/EEPROM.h"
 #include "Driver/AT24CXX.h"
 
 #define USE_SOFTWARE_TWI
@@ -21,21 +22,29 @@ Hardware::TWI twi;
 #endif
 
 // EEPROM external storage
-AT24C32 eeprom(twi);
+// AT24C32 eeprom(twi);
+EEPROM eeprom;
 
-// Address of data on storage
-const uint32_t v_addr = eeprom.PAGE_MAX / 2;
-
-// Local data
+// Local data and storage block
 int16_t v[32];
+Storage::Block v_eeprom(eeprom, v, sizeof(v));
 
-// Block on storage for local data
-Storage::Block v_eeprom(eeprom, v_addr, v, sizeof(v));
+char w[32];
+Storage::Block w_eeprom(eeprom, w, sizeof(w));
 
 void setup()
 {
   Serial.begin(57600);
   while (!Serial);
+
+  Serial.print(F("setup:v_eeprom.addr: "));
+  Serial.println(v_eeprom.addr());
+
+  Serial.print(F("setup:w_eeprom.addr: "));
+  Serial.println(w_eeprom.addr());
+
+  Serial.print(F("setup:eeprom.addr: "));
+  Serial.println(eeprom.alloc(0));
 
   // Initiate vector (or read from eeprom)
 #if 0
@@ -43,10 +52,17 @@ void setup()
   for (size_t i = 0; i < sizeof(v) / sizeof(v[0]); i++) {
     v[i] = i;
   }
+  strcat(w, "Nisse badar");
+  w_eeprom.write();
 #else
   Serial.print(F("setup:read: "));
   Serial.println(v_eeprom.read());
 #endif
+  Serial.print(F("setup:w_eeprom.addr: "));
+  Serial.print(w_eeprom.read());
+  Serial.print(F(", \""));
+  Serial.print(w);
+  Serial.println('"');
 }
 
 void loop()

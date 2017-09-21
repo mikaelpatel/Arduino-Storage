@@ -93,12 +93,12 @@ public:
    * @override{Storage}
    * Read eeprom block with the given size into the buffer from the
    * address. Return number of bytes read or negative error code.
-   * @param[in] dest buffer to read from eeprom.
+   * @param[in] dst buffer to read from eeprom.
    * @param[in] src address in eeprom to read from.
    * @param[in] count number of bytes to read.
    * @return number of bytes or negative error code.
    */
-  virtual int read(void* dest, uint32_t src, size_t count)
+  virtual int read(void* dst, uint32_t src, size_t count)
   {
     uint8_t retry = RETRY_MAX;
     uint16_t addr = __builtin_bswap16(src);
@@ -106,7 +106,7 @@ public:
       if (!acquire()) return (-1);
       int res = write(&addr, sizeof(addr));
       if (res == sizeof(addr)) {
-	res = read(dest, count);
+	res = read(dst, count);
 	if (!release()) break;
 	if (res == (int) count) return (res);
       }
@@ -120,20 +120,20 @@ public:
    * @override{Storage}
    * Write eeprom block at given address with the contents from the
    * buffer. Return number of bytes written or negative error code.
-   * @param[in] dest address in eeprom to read write to.
+   * @param[in] dst address in eeprom to read write to.
    * @param[in] src buffer to write to eeprom.
    * @param[in] count number of bytes to write.
    * @return number of bytes or negative error code.
    */
-  virtual int write(uint32_t dest, const void* src, size_t count)
+  virtual int write(uint32_t dst, const void* src, size_t count)
   {
     uint8_t* p = (uint8_t*) src;
     size_t s = count;
-    size_t n = PAGE_MAX - (dest & PAGE_MASK);
+    size_t n = PAGE_MAX - (dst & PAGE_MASK);
     if (n > s) n = s;
     while (1) {
       uint8_t retry = RETRY_MAX;
-      uint16_t addr = __builtin_bswap16(dest);
+      uint16_t addr = __builtin_bswap16(dst);
       iovec_t vec[3];
       iovec_t* vp = vec;
       int res = -1;
@@ -150,7 +150,7 @@ public:
       if (res < 0) return (-1);
       s -= n;
       if (s == 0) return (count);
-      dest += n;
+      dst += n;
       p += n;
       n = (s < PAGE_MAX ? s : PAGE_MAX);
     }

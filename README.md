@@ -3,7 +3,7 @@
 The External Memory Storage library for Arduino is designed to
 abstract handling of external memory, and allow block read/write and
 streaming of data. The library includes device drivers for SPI SRAM
-(23LC1024) and 2-Wire EEPROM (AT24CXX).
+(23LC1024), 2-Wire EEPROM (AT24CXX) and internal EEPROM.
 
 Version: 1.0
 
@@ -17,6 +17,7 @@ Version: 1.0
 
 * [1 Mbit Serial SRAM, 23LC1024](./src/Driver/MC23LC1024.h)
 * [2-Wire EEPROM, AT24CXX](./src/Driver/AT24CXX.h)
+* [Internal EEPROM, EEPROM](./src/Driver/EEPROM.h)
 
 ## Example Sketches
 

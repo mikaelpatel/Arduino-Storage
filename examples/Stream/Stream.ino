@@ -21,9 +21,9 @@ Hardware::SPI spi;
 // External memory storage
 MC23LC1024<BOARD::D10> sram(spi);
 
-// Storage streams; address = 0 and 10000, size = 10000 each
-Storage::Stream<10000> ios(sram);
-Storage::Stream<10000> temps(sram, 10000);
+// Storage streams; 10000 bytes each
+Storage::Stream ios(sram, 10000);
+Storage::Stream temps(sram, 10000);
 
 // Sample size and performance measurements
 const int N = 1000;
@@ -98,6 +98,13 @@ void loop()
   Serial.flush();
   m7 = micros() - s0;
 
+
+  Serial.print(F("ios.addr = "));
+  Serial.println(ios.addr());
+  Serial.print(F("temps.addr = "));
+  Serial.println(temps.addr());
+  Serial.print(F("sram.addr = "));
+  Serial.println(sram.alloc(0));
   Serial.print(F("Samples, N = "));
   Serial.println(N);
   Serial.print(F("Serial.print, m0 = "));
