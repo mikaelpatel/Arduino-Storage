@@ -69,6 +69,8 @@ void loop()
   }
   Serial.println();
 
+  for (int i = 0; i < BUF_MAX; i++) buf[i] = 0;
+
   Serial.println(F("read(N, us, us/byte, kbyte/s)"));
   Serial.flush();
   for (int i = 1; i < 10000; i *= 10) {
@@ -94,6 +96,7 @@ void loop()
       break;
     }
   }
+  n += 1;
 
   delay(5000);
 }
