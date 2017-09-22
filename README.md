@@ -23,7 +23,7 @@ Version: 1.0
 
 * [Block](./examples/Block)
 * [Storage](./examples/Storage)
-* [Stream](./examples/Stream)
+* [Benchmarks](./examples/Benchmarks)
 
 ## Dependencies
 
