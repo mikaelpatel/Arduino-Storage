@@ -51,6 +51,9 @@ public:
     PAGE_MASK(page_max - 1)
   {}
 
+  /** Number of bytes in max write page size. */
+  const uint16_t PAGE_MAX;
+
   /**
    * Return true(1) if the device is ready, write cycle is completed,
    * otherwise false(0).
@@ -131,13 +134,7 @@ public:
     }
   }
 
-  using TWI::Device::read;
-  using TWI::Device::write;
-
 protected:
-  /** Number of bytes in max write page size. */
-  const uint16_t PAGE_MAX;
-
   /** Memory addres page mask. */
   const uint16_t PAGE_MASK;
 
@@ -146,6 +143,9 @@ protected:
 
   /** Retry delay time: 1 ms */
   static const uint8_t RETRY_DELAY_MS = 1;
+
+  using TWI::Device::read;
+  using TWI::Device::write;
 };
 
 /**

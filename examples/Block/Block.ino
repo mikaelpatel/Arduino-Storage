@@ -9,21 +9,15 @@
 #if defined(USE_SOFTWARE_TWI)
 #include "GPIO.h"
 #include "Software/TWI.h"
-#if defined(ARDUINO_attiny)
-#include "Software/Serial.h"
-Software::Serial<BOARD::D0> Serial;
-Software::TWI<BOARD::D1, BOARD::D2> twi;
-#else
 Software::TWI<BOARD::D6, BOARD::D7> twi;
-#endif
 #elif defined(USE_HARDWARE_TWI)
 #include "Hardware/TWI.h"
 Hardware::TWI twi;
 #endif
 
 // EEPROM external storage
-// AT24C32 eeprom(twi);
-EEPROM eeprom;
+AT24C32 eeprom(twi);
+// EEPROM eeprom;
 
 // Local data and storage block
 int16_t v[32];

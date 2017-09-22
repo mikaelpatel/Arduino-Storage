@@ -26,7 +26,7 @@
  * Storage device driver for Microchip 23LC1024, 1M bit SPI Serial
  * SRAM.
  * @param[in] SS_PIN slave select board pin.
- * @param[in] FREQ bus frequency (default 16 MHz).
+ * @param[in] FREQ max bus frequency for device (default 16 MHz).
  * @section Circuit
  * @code
  *                          23LC1024
@@ -39,7 +39,10 @@
  * @endcode
  */
 template<BOARD::pin_t SS_PIN, uint32_t FREQ = 16000000L>
-class MC23LC1024 : public Storage, protected SPI::Device<0, MSBFIRST, FREQ, SS_PIN> {
+class MC23LC1024 :
+  public Storage,
+  protected SPI::Device<0, MSBFIRST, FREQ, SS_PIN>
+{
 public:
   /** Maximum device clock frequency. */
   static const uint32_t MAX_FREQ = 16000000L;
@@ -66,10 +69,13 @@ public:
   virtual int read(void* dst, uint32_t src, size_t count)
   {
     uint8_t* sp = (uint8_t*) &src;
-    sp[3] = READ;
-    src = __builtin_bswap32(src);
+    header_t header;
+    header.cmd = READ;
+    header.addr[0] = sp[2];
+    header.addr[1] = sp[1];
+    header.addr[2] = sp[0];
     acquire();
-    write(&src, sizeof(src));
+    write(&header, sizeof(header));
     read(dst, count);
     release();
     return (count);
@@ -88,16 +94,26 @@ public:
   virtual int write(uint32_t dst, const void* src, size_t count)
   {
     uint8_t* dp = (uint8_t*) &dst;
-    dp[3] = WRITE;
-    dst = __builtin_bswap32(dst);
+    header_t header;
+    header.cmd = WRITE;
+    header.addr[0] = dp[2];
+    header.addr[1] = dp[1];
+    header.addr[2] = dp[0];
     acquire();
-    write(&dst, sizeof(dst));
+    write(&header, sizeof(header));
     write(src, count);
     release();
     return (count);
   }
 
 protected:
+  /** Command and address header. */
+  struct header_t {
+    uint8_t cmd;		//!< Command code.
+    uint8_t addr[3];		//!< 24-bit address in MSB order.
+  } __attribute__((packed));
+
+  /** Command codes. */
   enum {
     READ = 0x03,		//!< Read data from memory
     WRITE = 0x02,		//!< Write data to memory

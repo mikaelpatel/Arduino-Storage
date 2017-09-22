@@ -26,20 +26,14 @@
  */
 class Storage {
 public:
+  /** Number of bytes on device. */
+  const uint32_t SIZE;
+
   /**
    * Create storage manager with given number of bytes.
    * @param[in] size number of bytes on device.
    */
-  Storage(uint32_t size) : m_addr(0), m_size(size) {}
-
-  /**
-   * Returns number of bytes on storage device.
-   * @return number of bytes.
-   */
-  uint32_t size()
-  {
-    return (m_size);
-  }
+  Storage(uint32_t size) : SIZE(size), m_addr(0) {}
 
   /**
    * Returns number of bytes that may be allocated.
@@ -47,7 +41,7 @@ public:
    */
   uint32_t room()
   {
-    return (m_size - m_addr);
+    return (SIZE - m_addr);
   }
 
   /**
@@ -100,10 +94,10 @@ public:
      * @param[in] nmemb number of members (default 1).
      */
     Block(Storage &mem, void* buf, size_t size, size_t nmemb = 1) :
+      SIZE(size),
+      NMEMB(nmemb),
       m_mem(mem),
-      m_addr(m_mem.alloc(size)),
-      m_size(size),
-      m_nmemb(nmemb),
+      m_addr(m_mem.alloc(size * nmemb)),
       m_buf(buf)
     {
     }
@@ -114,7 +108,9 @@ public:
      */
     uint32_t size()
     {
-      return (m_size * m_nmemb);
+      if (NMEMB == 1)
+	return (SIZE);
+      return (SIZE * NMEMB);
     }
 
     /**
@@ -135,9 +131,9 @@ public:
     int read(size_t ix = 0)
     {
       if (ix == 0)
-	return (m_mem.read(m_buf, m_addr, m_size));
-      if (ix < m_nmemb)
-	return (m_mem.read(m_buf, m_addr + (ix * m_size), m_size));
+	return (m_mem.read(m_buf, m_addr, SIZE));
+      if (ix < NMEMB)
+	return (m_mem.read(m_buf, m_addr + (ix * SIZE), SIZE));
       return (-1);
     }
 
@@ -150,11 +146,17 @@ public:
     int write(size_t ix = 0)
     {
       if (ix == 0)
-	return (m_mem.write(m_addr, m_buf, m_size));
-      if (ix < m_nmemb)
-	return (m_mem.write(m_addr + (ix * m_size), m_buf, m_size));
+	return (m_mem.write(m_addr, m_buf, SIZE));
+      if (ix < NMEMB)
+	return (m_mem.write(m_addr + (ix * SIZE), m_buf, SIZE));
       return (-1);
     }
+
+    /** Size of member. */
+    const size_t SIZE;
+
+    /** Number of members. */
+    const size_t NMEMB;
 
   protected:
     /** Storage device from block. */
@@ -162,12 +164,6 @@ public:
 
     /** Address on storage device. */
     const uint32_t m_addr;
-
-    /** Size of member. */
-    const size_t m_size;
-
-    /** Number of members. */
-    const size_t m_nmemb;
 
     /** Buffer for data. */
     void* m_buf;
@@ -188,12 +184,12 @@ public:
      * @param[in] size number of bytes in stream.
      */
     Stream(Storage &mem, size_t size) :
+      SIZE(size),
       m_mem(mem),
       m_addr(m_mem.alloc(size)),
       m_put(0),
       m_get(0),
-      m_count(0),
-      m_size(size)
+      m_count(0)
     {
     }
 
@@ -215,11 +211,11 @@ public:
      */
     virtual size_t write(uint8_t byte)
     {
-      if (m_count == m_size) return (0);
+      if (m_count == SIZE) return (0);
       m_mem.write(m_addr + m_put, &byte, sizeof(byte));
       m_count += 1;
       m_put += 1;
-      if (m_put == m_size) m_put = 0;
+      if (m_put == SIZE) m_put = 0;
       return (sizeof(byte));
     }
 
@@ -233,11 +229,11 @@ public:
      */
     virtual size_t write(const uint8_t *buffer, size_t size)
     {
-      uint16_t room = m_size - m_count;
+      uint16_t room = SIZE - m_count;
       if (room == 0) return (0);
       if (size > room) size = room;
       size_t res = size;
-      room = m_size - m_put;
+      room = SIZE - m_put;
       if (size > room) {
 	m_mem.write(m_addr + m_put, buffer, room);
 	buffer += room;
@@ -288,7 +284,7 @@ public:
       m_mem.read(&res, m_addr + m_get, sizeof(res));
       m_count -= 1;
       m_get += 1;
-      if (m_get == m_size) m_get = 0;
+      if (m_get == SIZE) m_get = 0;
       return (res);
     }
 
@@ -302,6 +298,9 @@ public:
       m_get = 0;
       m_count = 0;
     }
+
+    /** Total size of the stream. */
+    size_t SIZE;
 
   protected:
     /** Storage device for the stream. */
@@ -318,16 +317,10 @@ public:
 
     /** Number of bytes available. */
     uint16_t m_count;
-
-    /** Total size of the stream. */
-    size_t m_size;
   };
 
 protected:
   /** Address of the next alloc. */
   uint32_t m_addr;
-
-  /** Number of bytes on device. */
-  const uint32_t m_size;
 };
 #endif

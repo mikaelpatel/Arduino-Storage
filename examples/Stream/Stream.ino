@@ -34,6 +34,12 @@ void setup()
 {
   Serial.begin(57600);
   while (!Serial);
+
+  Serial.print(F("sram.SIZE = "));
+  Serial.println(sram.SIZE);
+  Serial.print(F("sram.room = "));
+  Serial.println(sram.room());
+  Serial.flush();
 }
 
 void loop()
