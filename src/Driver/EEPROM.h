@@ -29,7 +29,7 @@ public:
   /**
    * Construct EEPROM device driver with storage size.
    */
-  EEPROM() : Storage(E2END) {}
+  EEPROM() : Storage(E2END + 1) {}
 
   /**
    * @override{Storage}
