@@ -1,9 +1,9 @@
 # Arduino-Storage
 
-The External Memory Storage library for Arduino is designed to
-abstract handling of external memory, and allow block read/write and
-streaming of data. The library includes device drivers for SPI SRAM
-(23LC1024), 2-Wire EEPROM (AT24CXX) and internal EEPROM.
+The Storage library for Arduino is designed to abstract handling of
+external memory, and allow block read/write and streaming of data. The
+library includes device drivers for SPI SRAM (23LC1024), 2-Wire EEPROM
+(AT24CXX) and internal EEPROM.
 
 Version: 1.0
 
@@ -15,8 +15,8 @@ Version: 1.0
 
 ## Drivers
 
-* [1 Mbit Serial SRAM, 23LC1024](./src/Driver/MC23LC1024.h)
 * [2-Wire EEPROM, AT24CXX](./src/Driver/AT24CXX.h)
+* [1 Mbit Serial SRAM, 23LC1024](./src/Driver/MC23LC1024.h)
 * [Internal EEPROM, EEPROM](./src/Driver/EEPROM.h)
 
 ## Example Sketches
@@ -24,6 +24,57 @@ Version: 1.0
 * [Block](./examples/Block)
 * [Storage](./examples/Storage)
 * [Benchmarks](./examples/Benchmarks)
+
+## Benchmarks
+
+### AT24C32, 2-Wire EEPROM
+#### Read
+N | us | us/byte | kbyte/s
+--|----|---------|--------
+1 | 528 | 528.00 | 1.89
+10 | 1352 | 135.20 | 7.40
+100 | 9680 | 96.80 | 10.33
+1000 | 93128 | 93.13 | 10.74
+#### Write
+N | us | us/byte | kbyte/s
+--|----|---------|--------
+1 | 408 | 408.00 | 2.45
+10 | 1236 | 123.60 | 8.09
+100 | 20540 | 205.40 | 4.87
+1000 | 206280 | 206.28 | 4.85
+
+### 23LC1024, SPI SRAM
+#### Read
+N | us | us/byte | kbyte/s
+--|----|---------|--------
+1 | 24 | 24.00 | 41.67
+10 | 40 | 4.00 | 250.00
+100 | 172 | 1.72 | 581.40
+1000 | 1532 | 1.53 | 652.74
+#### Write
+N | us | us/byte | kbyte/s
+--|----|---------|--------
+1 | 24 | 24.00 | 41.67
+10 | 36 | 3.60 | 277.78
+100 | 172 | 1.72 | 581.40
+1000 | 1468 | 1.47 | 681.20
+
+### EEPROM
+#### Read
+N | us | us/byte | kbyte/s
+--|----|---------|--------
+1 | 4 | 4.00 | 250.00
+10 | 16 | 1.60 | 625.00
+100 | 112 | 1.12 | 892.86
+1000 | 1072 | 1.07 | 932.84
+
+#### Write
+N | us | us/byte | kbyte/s
+--|----|---------|--------
+1 | 8 | 8.00 | 125.00
+10 | 20 | 2.00 | 500.00
+100 | 192 | 1.92 | 520.83
+1000 | 1884 | 1.88 | 530.79
 
 ## Dependencies
 
