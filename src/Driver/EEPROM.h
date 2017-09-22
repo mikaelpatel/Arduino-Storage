@@ -22,14 +22,20 @@
 #include "Storage.h"
 
 /**
- * Driver for internal EEPROM.
+ * Storage device driver for the AVR internal EEPROM.
  */
 class EEPROM : public Storage {
 public:
   /**
+   * Construct EEPROM device driver with storage size.
+   */
+  EEPROM() : Storage(E2END) {}
+
+  /**
    * @override{Storage}
    * Read eeprom block with the given size into the buffer from the
-   * address. Return number of bytes read or negative error code.
+   * source address. Return number of bytes read or negative error
+   * code.
    * @param[in] dst buffer to read from eeprom.
    * @param[in] src address in eeprom to read from.
    * @param[in] count number of bytes to read.
@@ -43,8 +49,9 @@ public:
 
   /**
    * @override{Storage}
-   * Write eeprom block at given address with the contents from the
-   * buffer. Return number of bytes written or negative error code.
+   * Write eeprom block at given destination address with the contents
+   * from the buffer. Return number of bytes written or negative error
+   * code.
    * @param[in] dst address in eeprom to read write to.
    * @param[in] src buffer to write to eeprom.
    * @param[in] count number of bytes to write.

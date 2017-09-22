@@ -30,36 +30,12 @@
  * Driver for the AT24CXX 2-Wire Serial EEPROM. Allows page write and
  * block read. Supports device AT24C32 (8K) to AT24C512 (64K). Default
  * AT24CXX device is AT24C32.
- *
- * @section Circuit
- * The TinyRTC with DS1307 also contains a 24C32 EEPROM.
- * @code
- *                       TinyRTC(24C32)
- *                       +------------+
- *                     1-|SQ          |
- *                     2-|DS        DS|-1
- * (A5/SCL)------------3-|SCL      SCL|-2
- * (A4/SDA)------------4-|SDA      SDA|-3
- * (VCC)---------------5-|VCC      VCC|-4
- * (GND)---------------6-|GND      GND|-5
- *                     7-|BAT         |
- *                       +------------+
- * @endcode
- */
+  */
 class AT24CXX : public Storage, protected TWI::Device {
 public:
-  /** Number of bytes in max write page size. */
-  const uint16_t PAGE_MAX;
-
-  /** Memory addres page mask. */
-  const uint16_t PAGE_MASK;
-
-  /** Number of bytes on device. */
-  const size_t SIZE;
-
   /**
    * Construct AT24CXX serial TWI EEPROM device access to given
-   * chip address, page and memory size.
+   * chip sub-address, page and memory size.
    * @param[in] twi bus manager.
    * @param[in] subaddr chip address (0..7, default 0).
    * @param[in] size in Kbits (default 32).
@@ -69,11 +45,10 @@ public:
 	  uint8_t subaddr = 0,
 	  const size_t size = 32,
 	  const uint16_t page_max = 32) :
-    Storage(),
+    Storage((size / CHARBITS) * 1024UL),
     TWI::Device(twi, 0x50 | (subaddr & 0x07)),
     PAGE_MAX(page_max),
-    PAGE_MASK(page_max - 1),
-    SIZE((size / CHARBITS) * 1024)
+    PAGE_MASK(page_max - 1)
   {}
 
   /**
@@ -159,7 +134,13 @@ public:
   using TWI::Device::read;
   using TWI::Device::write;
 
-private:
+protected:
+  /** Number of bytes in max write page size. */
+  const uint16_t PAGE_MAX;
+
+  /** Memory addres page mask. */
+  const uint16_t PAGE_MASK;
+
   /** Maximum number of read/write page retries: 20 ms */
   static const uint8_t RETRY_MAX = 20;
 

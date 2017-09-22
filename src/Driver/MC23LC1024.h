@@ -23,8 +23,10 @@
 #include "Storage.h"
 
 /**
- * Driver for the Microchip 23LC1024, 1M bit SPI Serial SRAM.
+ * Storage device driver for Microchip 23LC1024, 1M bit SPI Serial
+ * SRAM.
  * @param[in] SS_PIN slave select board pin.
+ * @param[in] FREQ bus frequency (default 16 MHz).
  * @section Circuit
  * @code
  *                          23LC1024
@@ -44,16 +46,18 @@ public:
 
   /**
    * Construct and initiate device driver with given slave select
-   * board pin and bus manager.
+   * board pin, max bus frequency, and bus manager.
    */
   MC23LC1024(SPI& spi) :
-    Storage(),
+    Storage(128 * 1024UL),
     SPI::Device<0, MSBFIRST, MAX_FREQ, SS_PIN>(spi)
   {}
 
   /**
    * @override{Storage}
-   * Read count number of bytes from SRAM address to buffer.
+   * Read given count number of bytes from SRAM source address to
+   * destination buffer. Returns number of bytes read, or negative
+   * error code.
    * @param[in] dst destination buffer pointer.
    * @param[in] src source memory address on device.
    * @param[in] count number of bytes to read from device.
@@ -61,9 +65,9 @@ public:
    */
   virtual int read(void* dst, uint32_t src, size_t count)
   {
-    uint8_t* command = (uint8_t*) &src;
+    uint8_t* sp = (uint8_t*) &src;
+    sp[3] = READ;
     src = __builtin_bswap32(src);
-    *command = READ;
     acquire();
     write(&src, sizeof(src));
     read(dst, count);
@@ -73,7 +77,9 @@ public:
 
   /**
    * @override{Storage}
-   * Write count number of bytes to SRAM address from buffer.
+   * Write given count number of bytes to SRAM destination address
+   * from source buffer. Returns number of bytes written, or negative
+   * error code.
    * @param[in] dst destination memory address on device.
    * @param[in] src source buffer pointer.
    * @param[in] count number of bytes to write to device.
@@ -81,9 +87,9 @@ public:
    */
   virtual int write(uint32_t dst, const void* src, size_t count)
   {
-    uint8_t* command = (uint8_t*) &dst;
+    uint8_t* dp = (uint8_t*) &dst;
+    dp[3] = WRITE;
     dst = __builtin_bswap32(dst);
-    *command = WRITE;
     acquire();
     write(&dst, sizeof(dst));
     write(src, count);

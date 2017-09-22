@@ -21,14 +21,48 @@
 
 /**
  * External memory storage interface, data block read/write and
- * streaming class.
+ * streaming class. Handles linear allocation of storage blocks on the
+ * device.
  */
 class Storage {
 public:
   /**
-   * Create storage manager.
+   * Create storage manager with given number of bytes.
+   * @param[in] size number of bytes on device.
    */
-  Storage() : m_addr(0) {}
+  Storage(uint32_t size) : m_addr(0), m_size(size) {}
+
+  /**
+   * Returns number of bytes on storage device.
+   * @return number of bytes.
+   */
+  uint32_t size()
+  {
+    return (m_size);
+  }
+
+  /**
+   * Returns number of bytes that may be allocated.
+   * @return number of bytes.
+   */
+  uint32_t room()
+  {
+    return (m_size - m_addr);
+  }
+
+  /**
+   * Allocate block with given number of bytes on storage. Returns
+   * storage address if successful otherwise UINT32_MAX.
+   * @param[in] count number of bytes.
+   * @return address of allocated block, otherwise UINT32_MAX.
+   */
+  uint32_t alloc(size_t count)
+  {
+    if (count > room()) return (UINT32_MAX);
+    uint32_t res = m_addr;
+    m_addr += count;
+    return (res);
+  }
 
   /**
    * Read count number of bytes from storage address to buffer.
@@ -49,29 +83,21 @@ public:
   virtual int write(uint32_t dest, const void* src, size_t count) = 0;
 
   /**
-   * Allocate block with given number of bytes on storage.
-   * @param[in] count number of bytes.
-   * @return address of allocated block.
-   */
-  uint32_t alloc(size_t count)
-  {
-    uint32_t res = m_addr;
-    m_addr += count;
-    return (res);
-  }
-
-  /**
    * Storage Block for data; temporary or persistent external storage
    * of data.
    */
   class Block {
   public:
     /**
-     * Construct block on given storage device at the given start
-     * address, local buffer and size.
+     * Construct block on given storage device with the given local
+     * buffer, member size and number of members. Storage is allocated
+     * on the device for the total storage of the members. The buffer
+     * is assumed to only hold a single member. Default is a single
+     * member.
      * @param[in] mem storage device for block.
      * @param[in] buf buffer address.
-     * @param[in] size number of bytes.
+     * @param[in] size number of bytes per member.
+     * @param[in] nmemb number of members (default 1).
      */
     Block(Storage &mem, void* buf, size_t size, size_t nmemb = 1) :
       m_mem(mem),
@@ -83,43 +109,67 @@ public:
     }
 
     /**
-     * Returns storage address.
+     * Returns storage total size (size * nmemb).
      * @return address.
      */
-    uint32_t addr()
+    uint32_t size()
+    {
+      return (m_size * m_nmemb);
+    }
+
+    /**
+     * Returns storage address for the block.
+     * @return address.
+     */
+    size_t addr()
     {
       return (m_addr);
     }
 
     /**
-     * Read storage block to buffer.
-     * @param[in] ix element index (default 0):
+     * Read indexed storage block to buffer. Default index is the
+     * first member.
+     * @param[in] ix member index (default 0):
      * @return number of bytes read or negative error code.
      */
     int read(size_t ix = 0)
     {
+      if (ix == 0)
+	return (m_mem.read(m_buf, m_addr, m_size));
       if (ix < m_nmemb)
 	return (m_mem.read(m_buf, m_addr + (ix * m_size), m_size));
       return (-1);
     }
 
     /**
-     * Write buffer to storage block.
-     * @param[in] ix element index (default 0):
+     * Write buffer to indexed storage block. Default index is the
+     * first member.
+     * @param[in] ix member index (default 0):
      * @return number of bytes written or negative error code.
      */
     int write(size_t ix = 0)
     {
+      if (ix == 0)
+	return (m_mem.write(m_addr, m_buf, m_size));
       if (ix < m_nmemb)
 	return (m_mem.write(m_addr + (ix * m_size), m_buf, m_size));
       return (-1);
     }
 
   protected:
+    /** Storage device from block. */
     Storage& m_mem;
+
+    /** Address on storage device. */
     const uint32_t m_addr;
+
+    /** Size of member. */
     const size_t m_size;
+
+    /** Number of members. */
     const size_t m_nmemb;
+
+    /** Buffer for data. */
     void* m_buf;
   };
 
@@ -132,9 +182,8 @@ public:
   class Stream : public ::Stream {
   public:
     /**
-     * Construct stream on given storage device at the given start
-     * address. The storage size of the stream is given as a template
-     * parameter.
+     * Construct stream on given storage device with the given size.
+     * address.
      * @param[in] mem storage device for stream.
      * @param[in] size number of bytes in stream.
      */
@@ -255,15 +304,30 @@ public:
     }
 
   protected:
+    /** Storage device for the stream. */
     Storage& m_mem;
+
+    /** Address on storage for the stream data. */
     const uint32_t m_addr;
+
+    /** Index for the next write. */
     uint16_t m_put;
+
+    /** Index for the next read. */
     uint16_t m_get;
+
+    /** Number of bytes available. */
     uint16_t m_count;
+
+    /** Total size of the stream. */
     size_t m_size;
   };
 
 protected:
+  /** Address of the next alloc. */
   uint32_t m_addr;
+
+  /** Number of bytes on device. */
+  const uint32_t m_size;
 };
 #endif
