@@ -21,9 +21,11 @@ Version: 1.0
 
 ## Example Sketches
 
-* [Block](./examples/Block)
-* [Storage](./examples/Storage)
-* [Benchmarks](./examples/Benchmarks)
+* [Benchmarks](./examples/Benchmarks) measurements of characteristics.
+* [Block](./examples/Block) read/write eeprom blocks.
+* [Persistent](./examples/Persistent) read/write configuration.
+* [Stream](./examples/Stream) storage as a print stream.
+* [Vector](./examples/Vector) handling large sample vectors.
 
 ## Benchmarks
 
@@ -43,6 +45,12 @@ N | us | us/byte | kbyte/s
 100 | 20540 | 205.40 | 4.87
 1000 | 206280 | 206.28 | 4.85
 
+Note: 1) The read/write operations have a three byte header (8-bit
+command, and 16-bit address), 2) Write performance increases up to
+page size. When the block size is larger than the page size the write
+operation will wait for the device to complete the page write. Typical
+max 10 ms per page.
+
 ### 23LC1024, SPI SRAM
 #### Read
 N | us | us/byte | kbyte/s
@@ -58,6 +66,9 @@ N | us | us/byte | kbyte/s
 10 | 36 | 3.60 | 277.78
 100 | 172 | 1.72 | 581.40
 1000 | 1468 | 1.47 | 681.20
+
+Note: 1) The read/write operations have a four byte header (8-bit
+command, and 24-bit address).
 
 ### EEPROM
 #### Read
@@ -75,6 +86,10 @@ N | us | us/byte | kbyte/s
 10 | 30780 | 3078.00 | 0.32
 100 | 308140 | 3081.40 | 0.32
 1000 | 3077476 | 3077.48 | 0.32
+
+Note: The internal eeprom has a single byte buffer and write of
+multiple bytes will wait for the device to complete previous
+write. Typical 3 ms.
 
 ## Dependencies
 
