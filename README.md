@@ -67,7 +67,7 @@ N | us | us/byte | kbyte/s
 100 | 172 | 1.72 | 581.40
 1000 | 1468 | 1.47 | 681.20
 
-Note: 1) The read/write operations have a four byte header (8-bit
+Note: The read/write operations have a four byte header (8-bit
 command, and 24-bit address).
 
 ### EEPROM
