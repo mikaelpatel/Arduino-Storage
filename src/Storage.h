@@ -20,9 +20,9 @@
 #define STORAGE_H
 
 /**
- * External memory storage interface, data block read/write and
- * streaming class. Handles linear allocation of storage blocks on the
- * device.
+ * External memory storage interface, data block read/write, caching
+ * and streaming class. Handles linear allocation of storage blocks on
+ * the device.
  */
 class Storage {
 public:
@@ -68,7 +68,8 @@ public:
   }
 
   /**
-   * Read count number of bytes from storage address to buffer.
+   * Read count number of bytes from storage address to
+   * buffer. Returns number of bytes read or negative error code.
    * @param[in] dest destination buffer pointer.
    * @param[in] src source memory address on device.
    * @param[in] count number of bytes to read from device.
@@ -77,7 +78,8 @@ public:
   virtual int read(void* dest, uint32_t src, size_t count) = 0;
 
   /**
-   * Write count number of bytes to storage address from buffer.
+   * Write count number of bytes to storage address from
+   * buffer. Returns number of bytes read or negative error code.
    * @param[in] dest destination memory address on device.
    * @param[in] src source buffer pointer.
    * @param[in] count number of bytes to write to device.
@@ -86,13 +88,12 @@ public:
   virtual int write(uint32_t dest, const void* src, size_t count) = 0;
 
   /**
-   * Allocated block on memory on storage.
+   * Allocated block of memory on storage.
    */
   class Block {
   public:
     /**
-     * Construct block on given storage device. Memory is allocated on
-     * the device.
+     * Construct block with given size on given storage device.
      * @param[in] mem storage device for block.
      * @param[in] size number of bytes.
      */
@@ -103,13 +104,16 @@ public:
     {
     }
 
+    /**
+     * Destruct block and free allocated memory on storage device.
+     */
     ~Block()
     {
       m_mem.free(m_addr);
     }
 
     /**
-     * Returns storage address for the block.
+     * Returns storage address for the memory block.
      * @return address.
      */
     uint32_t addr()
@@ -148,11 +152,11 @@ public:
       return (-1);
     }
 
-    /** Size of block. */
+    /** Size of memory block. */
     const uint32_t SIZE;
 
   protected:
-    /** Storage device from block. */
+    /** Storage device from memory block. */
     Storage& m_mem;
 
     /** Address on storage device. */
@@ -161,7 +165,8 @@ public:
 
   /**
    * Storage Cache for data; temporary or persistent external storage
-   * of data with local memory copy.
+   * of data with local memory copy. Allows element access of vectors
+   * on external storage.
    */
   class Cache : public Block {
   public:
@@ -243,14 +248,12 @@ public:
   /**
    * Stream of given size on given storage. Write/print intermediate
    * data to the stream that may later be read and transfered.
-   * Multiple stream may be created on the same device by assigning
-   * start address and size.
+   * Multiple stream may be created on the same device.
    */
   class Stream : public ::Stream {
   public:
     /**
      * Construct stream on given storage device with the given size.
-     * address.
      * @param[in] mem storage device for stream.
      * @param[in] size number of bytes in stream.
      */
@@ -265,7 +268,7 @@ public:
     }
 
     /**
-     * Returns storage address.
+     * Returns storage address for stream.
      * @return address.
      */
     uint32_t addr()
@@ -292,9 +295,9 @@ public:
 
     /**
      * @override{Stream}
-     * Write given buffer and numbe of bytes to stream. Return number
-     * of bytes written.
-     * @param[in] bufffer to write.
+     * Write given buffer and number of bytes to stream. Return number
+     * of bytes written, or zero if stream is full.
+     * @param[in] buffer to write.
      * @param[in] size number of byets to write.
      * @return number of bytes.
      */
@@ -330,8 +333,8 @@ public:
 
     /**
      * @override{Stream}
-     * Return next byte to read if available otherwise negative error
-     * code(-1).
+     * Return next byte in stream (without removing) if available
+     * otherwise negative error code(-1).
      * @return next byte or negative error code.
      */
     virtual int peek()
@@ -383,7 +386,7 @@ public:
     /** Index for the next write. */
     uint16_t m_put;
 
-    /** Index for the next read. */
+    /** Index for the next read/peek. */
     uint16_t m_get;
 
     /** Number of bytes available. */
@@ -391,7 +394,7 @@ public:
   };
 
 protected:
-  /** Address of the next alloc. */
+  /** Address of the next allocation. */
   uint32_t m_addr;
 };
 #endif
