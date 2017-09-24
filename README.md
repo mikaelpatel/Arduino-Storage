@@ -11,6 +11,7 @@ Version: 1.0
 
 * [Abstract Storage Manager, Storage](./src/Storage.h)
 * [Storage Block, Storage::Block](./src/Storage.h)
+* [Storage Cache, Storage::Cache](./src/Storage.h)
 * [Storage Stream, Storage::Stream](./src/Storage.h)
 
 ## Drivers
@@ -24,6 +25,7 @@ Version: 1.0
 
 * [Benchmarks](./examples/Benchmarks) measurement of characteristics.
 * [Block](./examples/Block) read/write eeprom blocks.
+* [Cache](./examples/Block) cache local variable.
 * [Persistent](./examples/Persistent) read/write configuration.
 * [Stream](./examples/Stream) storage as a print stream.
 * [Vector](./examples/Vector) handling large sample vectors.
