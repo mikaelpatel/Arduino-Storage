@@ -1,17 +1,18 @@
 /*
- * sram.SIZE = 131072
+ * spi.FREQ(MHz) = 8
+ * sram.SIZE(kbyte) = 128
  *
  * write(N, us, us/byte, kbyte/s)
  * 1, 24, 24.00, 41.67
- * 10, 36, 3.60, 277.78
+ * 10, 40, 4.00, 250.00
  * 100, 172, 1.72, 581.40
  * 1000, 1468, 1.47, 681.20
  *
  * read(N, us, us/byte, kbyte/s)
  * 1, 24, 24.00, 41.67
- * 10, 40, 4.00, 250.00
- * 100, 172, 1.72, 581.40
- * 1000, 1532, 1.53, 652.74
+ * 10, 36, 3.60, 277.78
+ * 100, 156, 1.56, 641.03
+ * 1000, 1344, 1.34, 744.05
  */
 
 #include "Storage.h"
@@ -52,9 +53,13 @@ void loop()
   static uint8_t n = 0;
   for (int i = 0; i < BUF_MAX; i++) buf[i] = n + i;
 
-  Serial.print(F("sram.SIZE = "));
-  Serial.println(sram.SIZE);
   Serial.println();
+  Serial.println(F("spi.FREQ(MHz) = 8"));
+  Serial.print(F("sram.SIZE(kbyte) = "));
+  Serial.println(sram.SIZE / 1024);
+  Serial.println();
+
+  // Benchmark#1: Measure write with increasing buffer size
   Serial.println(F("write(N, us, us/byte, kbyte/s)"));
   Serial.flush();
   for (int i = 1; i < 10000; i *= 10) {
@@ -75,6 +80,7 @@ void loop()
 
   for (int i = 0; i < BUF_MAX; i++) buf[i] = 0;
 
+  // Benchmark#2: Measure read with increasing buffer size
   Serial.println(F("read(N, us, us/byte, kbyte/s)"));
   Serial.flush();
   for (int i = 1; i < 10000; i *= 10) {
@@ -91,7 +97,6 @@ void loop()
     Serial.println(1000 / uspb);
     Serial.flush();
   }
-  Serial.println();
 
   for (int i = 0; i < BUF_MAX; i++) {
     if (buf[i] != ((n + i) & 0xff)) {

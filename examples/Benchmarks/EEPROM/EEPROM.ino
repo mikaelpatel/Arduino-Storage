@@ -38,6 +38,8 @@ void loop()
   Serial.print(F("eeprom.SIZE: "));
   Serial.println(eeprom.SIZE);
   Serial.println();
+
+  // Benchmark#1: Measure write with increasing buffer size
   Serial.println(F("write(N, us, us/byte, kbyte/s)"));
   Serial.flush();
   for (int i = 1; i < 10000; i *= 10) {
@@ -58,6 +60,7 @@ void loop()
 
   for (int i = 0; i < BUF_MAX; i++) buf[i] = 0;
 
+  // Benchmark#2: Measure read with increasing buffer size
   Serial.println(F("read(N, us, us/byte, kbyte/s)"));
   Serial.flush();
   for (int i = 1; i < 10000; i *= 10) {

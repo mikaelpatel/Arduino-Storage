@@ -2,8 +2,8 @@
 
 The Storage library for Arduino is designed to abstract handling of
 external memory, and allow block read/write and streaming of data. The
-library includes device drivers for SPI SRAM (23LC1024), 2-Wire EEPROM
-(AT24CXX) and internal EEPROM.
+library includes device drivers for SPI SRAM (23LC512/1024), 2-Wire
+EEPROM (AT24CXX) and internal EEPROM.
 
 Version: 1.0
 
@@ -16,12 +16,13 @@ Version: 1.0
 ## Drivers
 
 * [2-Wire EEPROM, AT24CXX](./src/Driver/AT24CXX.h)
+* [512 Kbit Serial SRAM, 23LC512](./src/Driver/MC23LC512.h)
 * [1 Mbit Serial SRAM, 23LC1024](./src/Driver/MC23LC1024.h)
 * [Internal EEPROM, EEPROM](./src/Driver/EEPROM.h)
 
 ## Example Sketches
 
-* [Benchmarks](./examples/Benchmarks) measurements of characteristics.
+* [Benchmarks](./examples/Benchmarks) measurement of characteristics.
 * [Block](./examples/Block) read/write eeprom blocks.
 * [Persistent](./examples/Persistent) read/write configuration.
 * [Stream](./examples/Stream) storage as a print stream.
@@ -29,7 +30,7 @@ Version: 1.0
 
 ## Benchmarks
 
-### AT24C32, 2-Wire EEPROM
+### AT24C32, 2-Wire EEPROM, 100 KHz
 #### Read
 N | us | us/byte | kbyte/s
 --|----|---------|--------
@@ -37,6 +38,7 @@ N | us | us/byte | kbyte/s
 10 | 1352 | 135.20 | 7.40
 100 | 9680 | 96.80 | 10.33
 1000 | 93128 | 93.13 | 10.74
+
 #### Write
 N | us | us/byte | kbyte/s
 --|----|---------|--------
@@ -46,19 +48,21 @@ N | us | us/byte | kbyte/s
 1000 | 206280 | 206.28 | 4.85
 
 Note: 1) The read/write operations have a three byte header (8-bit
-command, and 16-bit address), 2) Write performance increases up to
+command, and 16-bit address). 2) Write performance increases up to
 page size. When the block size is larger than the page size the write
 operation will wait for the device to complete the page write. Typical
-max 10 ms per page.
+max 5-10 ms per page. 3) 400 KHz (and even 800 KHz) clock can be
+used.
 
-### 23LC1024, SPI SRAM
+### 23LC1024, SPI SRAM, 8 MHz
 #### Read
 N | us | us/byte | kbyte/s
 --|----|---------|--------
 1 | 24 | 24.00 | 41.67
-10 | 40 | 4.00 | 250.00
-100 | 172 | 1.72 | 581.40
-1000 | 1532 | 1.53 | 652.74
+10 | 36 | 3.60 | 277.78
+100 | 156 | 1.56 | 641.03
+1000 | 1344 | 1.34 | 744.05
+
 #### Write
 N | us | us/byte | kbyte/s
 --|----|---------|--------
