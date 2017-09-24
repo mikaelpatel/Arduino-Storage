@@ -11,13 +11,16 @@ struct config_t {
   uint8_t mac[6];
 };
 
+// Macro to enforce naming convention
+#define PERSISTENT(v) persistent_ ## v
+
 // Reset to default configuration flag
 bool reset;
-Storage::Block persistent_reset(eeprom, &reset, sizeof(reset));
+Storage::Cache PERSISTENT(reset)(eeprom, &reset, sizeof(reset));
 
 // Persistent configuration
 config_t config;
-Storage::Block persistent_config(eeprom, &config, sizeof(config));
+Storage::Cache PERSISTENT(config)(eeprom, &config, sizeof(config));
 
 // Default configuration
 static const char ssid[] PROGMEM = "Wi-Fi SSID";
@@ -29,23 +32,24 @@ void setup()
   while (!Serial);
 
   // Check the reset flag; write default configuration or read persistent
-  persistent_reset.read();
+  PERSISTENT(reset).read();
   if (reset) {
     Serial.println(F("Write default configuration"));
     config.timestamp = 0;
     strcat_P(config.ssid, ssid);
     memcpy_P(config.mac, mac, sizeof(mac));
-    persistent_config.write();
+    PERSISTENT(config).write();
     reset = false;
-    persistent_reset.write();
+    PERSISTENT(reset).write();
   }
   else {
     Serial.println(F("Read configuration"));
-    persistent_config.read();
+    PERSISTENT(config).read();
   }
 
-  Serial.print(F("reset@"));
-  Serial.print(persistent_reset.addr());
+  Serial.print(millis() / 1000.0);
+  Serial.print(F(":reset@"));
+  Serial.print(PERSISTENT(reset).addr());
   Serial.print(F(" = "));
   Serial.println(reset);
 }
@@ -53,10 +57,12 @@ void setup()
 void loop()
 {
   static uint8_t n = 0;
+  uint32_t start = millis();
 
   // Print configuration
-  Serial.print(F("config@"));
-  Serial.print(persistent_config.addr());
+  Serial.print(start / 1000.0);
+  Serial.print(F(":config@"));
+  Serial.print(PERSISTENT(config).addr());
   Serial.print(F(": timestamp = "));
   Serial.print(config.timestamp);
   Serial.print(F(", ssid = \""));
@@ -67,12 +73,16 @@ void loop()
     if (i + 1 < sizeof(config.mac)) Serial.print(':');
   }
   Serial.println();
-  delay(1000);
+  Serial.flush();
+  uint32_t ms = millis() - start;
+  delay(1000 - ms);
   if (++n < 60) return;
+  n = 0;
 
-  // Update timestamp every minute
+  // Update timestamp every minute and write to eeprom
   Serial.println(F("Update timestamp"));
   config.timestamp++;
-  persistent_config.write();
-  n = 0;
+  PERSISTENT(config).Block::write(offsetof(config_t, timestamp),
+				  &config.timestamp,
+				  sizeof(config.timestamp));
 }

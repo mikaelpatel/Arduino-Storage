@@ -1,5 +1,5 @@
 /**
- * eeprom.SIZE: 1024
+ * eeprom.SIZE(bytes): 1024
  *
  * write(N, us, us/byte, kbyte/s)
  * 1, 4, 4.00, 250.00
@@ -35,7 +35,7 @@ void loop()
   static uint8_t n = 0;
   for (int i = 0; i < BUF_MAX; i++) buf[i] = n + i;
 
-  Serial.print(F("eeprom.SIZE: "));
+  Serial.print(F("eeprom.SIZE(bytes): "));
   Serial.println(eeprom.SIZE);
   Serial.println();
 

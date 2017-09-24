@@ -1,6 +1,6 @@
 /* Results:
  * ----------------------------------------
- * twi@100kHz
+ * TWI@100kHz
  * ----------------------------------------
  * write(N, us, us/byte, kbyte/s)
  * 1, 408, 408.00, 2.45
@@ -15,7 +15,7 @@
  * 1000, 93128, 93.13, 10.74
  *
  * ----------------------------------------
- * twi@400kHz
+ * TWI@400kHz
  * ----------------------------------------
  * write(N, us, us/byte, kbyte/s)
  * 1, 132, 132.00, 7.58
@@ -30,7 +30,7 @@
  * 1000, 25152, 25.15, 39.76
  *
  * ----------------------------------------
- * twi@800kHz
+ * TWI@800kHz
  * ----------------------------------------
  * write(N, us, us/byte, kbyte/s)
  * 1, 88, 88.00, 11.36
@@ -53,17 +53,17 @@
 // #define USE_SOFTWARE_TWI
 #define USE_HARDWARE_TWI
 
-#if defined(USE_SOFTWARE_TWI)
-#include "GPIO.h"
-#include "Software/TWI.h"
-Software::TWI<BOARD::D6, BOARD::D7> twi;
-#elif defined(USE_HARDWARE_TWI)
-#include "Hardware/TWI.h"
 // Configure: Hardware TWI bus clock frequency
-//
 #define FREQ 800000UL
 // #define FREQ 400000UL
 // #define FREQ 100000UL
+
+#if defined(USE_SOFTWARE_TWI)
+#include "GPIO.h"
+#include "Software/TWI.h"
+Software::TWI<BOARD::D18, BOARD::D19> twi;
+#elif defined(USE_HARDWARE_TWI)
+#include "Hardware/TWI.h"
 Hardware::TWI twi(FREQ);
 #endif
 
@@ -75,8 +75,12 @@ const int BUF_MAX = 1000;
 uint8_t buf[BUF_MAX];
 
 // Buffer sizes
-const int N_MAX = 6;
-const int N[N_MAX] = { 1, 10, eeprom.PAGE_MAX, eeprom.PAGE_MAX*2, 100, 1000 };
+const int N_MAX = 7;
+const unsigned int N[N_MAX] = {
+  1, 10,
+  eeprom.PAGE_MAX, 2*eeprom.PAGE_MAX, 3*eeprom.PAGE_MAX,
+  100, 1000
+};
 
 void setup()
 {

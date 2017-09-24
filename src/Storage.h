@@ -59,6 +59,15 @@ public:
   }
 
   /**
+   * Reset allocation point to given address.
+   * @param[in] addr address of allocated block.
+   */
+  void free(uint32_t addr)
+  {
+    if (addr < m_addr) m_addr = addr;
+  }
+
+  /**
    * Read count number of bytes from storage address to buffer.
    * @param[in] dest destination buffer pointer.
    * @param[in] src source memory address on device.
@@ -77,86 +86,70 @@ public:
   virtual int write(uint32_t dest, const void* src, size_t count) = 0;
 
   /**
-   * Storage Block for data; temporary or persistent external storage
-   * of data.
+   * Allocated block on memory on storage.
    */
   class Block {
   public:
     /**
-     * Construct block on given storage device with the given local
-     * buffer, member size and number of members. Storage is allocated
-     * on the device for the total storage of the members. The buffer
-     * is assumed to only hold a single member. Default is a single
-     * member.
+     * Construct block on given storage device. Memory is allocated on
+     * the device.
      * @param[in] mem storage device for block.
-     * @param[in] buf buffer address.
-     * @param[in] size number of bytes per member.
-     * @param[in] nmemb number of members (default 1).
+     * @param[in] size number of bytes.
      */
-    Block(Storage &mem, void* buf, size_t size, size_t nmemb = 1) :
+    Block(Storage &mem, uint32_t size) :
       SIZE(size),
-      NMEMB(nmemb),
       m_mem(mem),
-      m_addr(m_mem.alloc(size * nmemb)),
-      m_buf(buf)
+      m_addr(m_mem.alloc(size))
     {
     }
 
-    /**
-     * Returns storage total size (size * nmemb).
-     * @return address.
-     */
-    uint32_t size()
+    ~Block()
     {
-      if (NMEMB == 1)
-	return (SIZE);
-      return (SIZE * NMEMB);
+      m_mem.free(m_addr);
     }
 
     /**
      * Returns storage address for the block.
      * @return address.
      */
-    size_t addr()
+    uint32_t addr()
     {
       return (m_addr);
     }
 
     /**
-     * Read indexed storage block to buffer. Default index is the
-     * first member.
-     * @param[in] ix member index (default 0):
+     * Read given number of bytes from offset within block to given
+     * buffer. Returns number of bytes read or negative error code.
+     * @param[in] buf buffer pointer.
+     * @param[in] offset offset within block.
+     * @param[in] size number of bytes to read.
      * @return number of bytes read or negative error code.
      */
-    int read(size_t ix = 0)
+    int read(void* buf, uint32_t offset, size_t size)
     {
-      if (ix == 0)
-	return (m_mem.read(m_buf, m_addr, SIZE));
-      if (ix < NMEMB)
-	return (m_mem.read(m_buf, m_addr + (ix * SIZE), SIZE));
+      if (offset + size <= SIZE)
+	return (m_mem.read(buf, m_addr + offset, size));
       return (-1);
     }
 
     /**
-     * Write buffer to indexed storage block. Default index is the
-     * first member.
-     * @param[in] ix member index (default 0):
+     * Write given number of bytes from buffer to given offset
+     * within block. Returns number of bytes written or negative error
+     * code.
+     * @param[in] buf buffer pointer.
+     * @param[in] offset offset within block.
+     * @param[in] size number of bytes to write.
      * @return number of bytes written or negative error code.
      */
-    int write(size_t ix = 0)
+    int write(uint32_t offset, const void* buf, size_t size)
     {
-      if (ix == 0)
-	return (m_mem.write(m_addr, m_buf, SIZE));
-      if (ix < NMEMB)
-	return (m_mem.write(m_addr + (ix * SIZE), m_buf, SIZE));
+      if (offset + size <= SIZE)
+	return (m_mem.write(m_addr + offset, buf, size));
       return (-1);
     }
 
-    /** Size of member. */
-    const size_t SIZE;
-
-    /** Number of members. */
-    const size_t NMEMB;
+    /** Size of block. */
+    const uint32_t SIZE;
 
   protected:
     /** Storage device from block. */
@@ -164,7 +157,85 @@ public:
 
     /** Address on storage device. */
     const uint32_t m_addr;
+  };
 
+  /**
+   * Storage Cache for data; temporary or persistent external storage
+   * of data with local memory copy.
+   */
+  class Cache : public Block {
+  public:
+    /**
+     * Construct cached block on given storage device with the given
+     * local buffer, member size and number of members. Storage is
+     * allocated on the device for the total storage of the
+     * members. The buffer is assumed to only hold a single member.
+     * @param[in] mem storage device for block.
+     * @param[in] buf buffer address.
+     * @param[in] size number of bytes per member.
+     * @param[in] nmemb number of members (default 1).
+     */
+    Cache(Storage &mem, void* buf, size_t size, size_t nmemb = 1) :
+      Block(mem, size * nmemb),
+      MSIZE(size),
+      NMEMB(nmemb),
+      m_buf(buf)
+    {
+    }
+
+    /**
+     * Returns storage address for the indexed storage block.
+     * @param[in] ix member index (default 0):
+     * @return address.
+     */
+    uint32_t addr(size_t ix = 0)
+    {
+      if (ix == 0)
+	return (m_addr);
+      if (ix < NMEMB)
+	return (m_addr + (ix * MSIZE));
+      return (UINT32_MAX);
+    }
+
+    /**
+     * Read indexed storage block to buffer. Default index is the
+     * first member. Returns number of bytes read or negative error
+     * code.
+     * @param[in] ix member index (default 0):
+     * @return number of bytes read or negative error code.
+     */
+    int read(size_t ix = 0)
+    {
+      if (ix == 0)
+	return (m_mem.read(m_buf, m_addr, MSIZE));
+      if (ix < NMEMB)
+	return (m_mem.read(m_buf, m_addr + (ix * MSIZE), MSIZE));
+      return (-1);
+    }
+
+    /**
+     * Write buffer to indexed storage block. Default index is the
+     * first member. Returns number of bytes written or negative error
+     * code.
+     * @param[in] ix member index (default 0):
+     * @return number of bytes written or negative error code.
+     */
+    int write(size_t ix = 0)
+    {
+      if (ix == 0)
+	return (m_mem.write(m_addr, m_buf, MSIZE));
+      if (ix < NMEMB)
+	return (m_mem.write(m_addr + (ix * MSIZE), m_buf, MSIZE));
+      return (-1);
+    }
+
+    /** Size of member. */
+    const size_t MSIZE;
+
+    /** Number of members. */
+    const size_t NMEMB;
+
+  protected:
     /** Buffer for data. */
     void* m_buf;
   };

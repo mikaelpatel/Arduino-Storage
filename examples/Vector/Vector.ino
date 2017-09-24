@@ -1,9 +1,24 @@
+/*
+ * SPI@8MHz
+ *
+ * sram.SIZE = 131072
+ * vector.MSIZE = 6
+ * vector.NMEMB = 10000
+ * vector.SIZE = 60000
+ *
+ * us/sample = 144
+ * samples/s = 6944
+ * min = 678
+ * max = 680
+ * avg = 679.05
+ */
+
 #include "Storage.h"
 #include "GPIO.h"
 #include "SPI.h"
 #include "Driver/MC23LC1024.h"
 
-// Configure usage of software or hardware spi bus manager
+// Configure: SPI bus manager variant
 // #define USE_SOFTWARE_SPI
 #define USE_HARDWARE_SPI
 
@@ -28,7 +43,7 @@ struct sample_t {
 // Single sample in memory and 10000 vector members on storage
 sample_t sample;
 const size_t NMEMB = 10000;
-Storage::Block vector(sram, &sample, sizeof(sample), NMEMB);
+Storage::Cache vector(sram, &sample, sizeof(sample), NMEMB);
 
 void setup()
 {
@@ -38,12 +53,13 @@ void setup()
   // Print size of storage, vector, sample and number of members
   Serial.print(F("sram.SIZE = "));
   Serial.println(sram.SIZE);
-  Serial.print(F("vector.size = "));
-  Serial.println(vector.size());
-  Serial.print(F("vector.SIZE = "));
-  Serial.println(vector.SIZE);
+  Serial.print(F("vector.MSIZE = "));
+  Serial.println(vector.MSIZE);
   Serial.print(F("vector.NMEMB = "));
   Serial.println(vector.NMEMB);
+  Serial.print(F("vector.SIZE = "));
+  Serial.println(vector.SIZE);
+  Serial.flush();
 }
 
 void loop()
@@ -73,20 +89,21 @@ void loop()
   us = sample.timestamp;
   vector.read(0);
   us -= sample.timestamp;
-  us /= vector.NMEMB;
+  uint32_t usps = us / vector.NMEMB;
 
   // Print the results; samples per second, min, max and average values
   Serial.println();
-  Serial.print(F("sps = "));
-  Serial.println(1000000.0 / us);
+  Serial.print(F("us/sample = "));
+  Serial.println(usps);
+  Serial.print(F("samples/s = "));
+  Serial.println(1000000 / usps);
   Serial.print(F("min = "));
   Serial.println(min);
   Serial.print(F("max = "));
   Serial.println(max);
-  Serial.print(F("sum = "));
-  Serial.println((float) sum);
   Serial.print(F("avg = "));
   Serial.println((float) sum / vector.NMEMB);
+  Serial.flush();
 
   delay(5000);
 }
