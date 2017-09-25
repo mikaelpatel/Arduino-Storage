@@ -8,11 +8,7 @@
 
 #if defined(USE_SOFTWARE_SPI)
 #include "Software/SPI.h"
-#if defined(ARDUINO_attiny)
-Software::SPI<BOARD::D1, BOARD::D2, BOARD::D3> spi;
-#else
 Software::SPI<BOARD::D11, BOARD::D12, BOARD::D13> spi;
-#endif
 #elif defined(USE_HARDWARE_SPI)
 #include "Hardware/SPI.h"
 Hardware::SPI spi;
@@ -35,6 +31,7 @@ void setup()
   Serial.begin(57600);
   while (!Serial);
 
+  // Print size of SRAM and number of bytes available after allocation
   Serial.print(F("sram.SIZE = "));
   Serial.println(sram.SIZE);
   Serial.print(F("sram.room = "));
@@ -104,7 +101,7 @@ void loop()
   Serial.flush();
   m7 = micros() - s0;
 
-
+  // Print the results
   Serial.print(F("ios.addr = "));
   Serial.println(ios.addr());
   Serial.print(F("temps.addr = "));
