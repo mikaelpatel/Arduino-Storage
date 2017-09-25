@@ -5,6 +5,20 @@ external memory, and allow block read/write and streaming of data. The
 library includes device drivers for SPI SRAM (23LC512/1024), 2-Wire
 EEPROM (AT24CXX) and internal EEPROM.
 
+Device driver for external storage such as EEPROM and SRAM should
+implement the Storage class virtual member functions and supply the
+number of bytes on the device.
+
+The Storage class supports linear allocation. The Storage::Block class
+handles the allocated block and provides functions to read and write
+to the block.
+
+In many cases the external block contains data that mirrors data used
+in the applications. The Storage::Cache handles read and write between
+the block on external storage and data/variables. The Storage::Cache
+class also allows handling of large vectors on external storage and
+element/member access.
+
 Version: 1.0
 
 ## Classes
