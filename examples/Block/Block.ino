@@ -1,29 +1,26 @@
 #include "Storage.h"
 #include "TWI.h"
 #include "Driver/AT24CXX.h"
-#include "Driver/EEPROM.h"
 
 // Configure: TWI bus manager
 #define USE_SOFTWARE_TWI
-// #define USE_HARDWARE_TWI
 
 // Configure: Hardware TWI bus clock frequency
-// #define FREQ 800000UL
-#define FREQ 400000UL
+#define FREQ 800000UL
+// #define FREQ 400000UL
 // #define FREQ 100000UL
 
 #if defined(USE_SOFTWARE_TWI)
 #include "GPIO.h"
 #include "Software/TWI.h"
 Software::TWI<BOARD::D18, BOARD::D19> twi;
-#elif defined(USE_HARDWARE_TWI)
+#else
 #include "Hardware/TWI.h"
 Hardware::TWI twi(FREQ);
 #endif
 
-// Configure: EEPROM storage
-AT24C32 eeprom(twi);
-// EEPROM eeprom;
+AT24C32 eeprom(twi, 7);
+// AT24C32 eeprom(twi);
 
 const uint32_t BLOCK_MAX = 16*eeprom.PAGE_MAX;
 Storage::Block block(eeprom, BLOCK_MAX);
@@ -32,6 +29,12 @@ void setup()
 {
   Serial.begin(57600);
   while (!Serial);
+
+  // Check that the eeprom is ready
+  while (!eeprom.is_ready()) {
+    Serial.println(F("eeprom:error: check sub-address and wiring"));
+    delay(5000);
+  }
 
   // Initiate eeprom; fill block with zero
   uint8_t page[eeprom.PAGE_MAX];
