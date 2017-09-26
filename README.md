@@ -113,6 +113,6 @@ write. Typical 3 ms.
 
 ## Dependencies
 
-* [General Purpose Input/Output library for Arduino](https://github.com/mikaelpatel/Arduino-GPIO)
-* [I2C Bus Manager and Device Driver Support](https://github.com/mikaelpatel/Arduino-TWI)
-* [Serial Peripheral Interface Bus Manager and Device Driver Support](https://github.com/mikaelpatel/Arduino-SPI)
+* [Arduino-GPIO](https://github.com/mikaelpatel/Arduino-GPIO)
+* [Arduino-TWI](https://github.com/mikaelpatel/Arduino-TWI)
+* [Arduino-SPI](https://github.com/mikaelpatel/Arduino-SPI)
