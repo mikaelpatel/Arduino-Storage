@@ -3,12 +3,12 @@
 #include "Driver/AT24CXX.h"
 
 // Configure: TWI bus manager
-#define USE_SOFTWARE_TWI
+// #define USE_SOFTWARE_TWI
 
 // Configure: Hardware TWI bus clock frequency
-#define FREQ 800000UL
+// #define FREQ 800000UL
 // #define FREQ 400000UL
-// #define FREQ 100000UL
+#define FREQ 100000UL
 
 #if defined(USE_SOFTWARE_TWI)
 #include "GPIO.h"
@@ -19,8 +19,8 @@ Software::TWI<BOARD::D18, BOARD::D19> twi;
 Hardware::TWI twi(FREQ);
 #endif
 
-AT24C32 eeprom(twi, 7);
-// AT24C32 eeprom(twi);
+// AT24C32 eeprom(twi, 7);
+AT24C32 eeprom(twi);
 
 const uint32_t BLOCK_MAX = 16*eeprom.PAGE_MAX;
 Storage::Block block(eeprom, BLOCK_MAX);

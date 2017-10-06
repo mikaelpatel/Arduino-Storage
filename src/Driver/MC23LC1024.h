@@ -39,8 +39,7 @@
  * @endcode
  */
 template<BOARD::pin_t SS_PIN, uint32_t FREQ = 16000000L>
-class MC23LC1024 :
-  public Storage,
+class MC23LC1024 : public Storage,
   protected SPI::Device<0, MSBFIRST, FREQ, SS_PIN>
 {
 public:
@@ -53,7 +52,7 @@ public:
    */
   MC23LC1024(SPI& spi) :
     Storage(128 * 1024UL),
-    SPI::Device<0, MSBFIRST, MAX_FREQ, SS_PIN>(spi)
+    SPI::Device<0, MSBFIRST, FREQ, SS_PIN>(spi)
   {}
 
   /**
@@ -121,10 +120,10 @@ protected:
     WRMR = 0x01			//!< Write mode register
   };
 
-  using SPI::Device<0,MSBFIRST,MAX_FREQ,SS_PIN>::acquire;
-  using SPI::Device<0,MSBFIRST,MAX_FREQ,SS_PIN>::transfer;
-  using SPI::Device<0,MSBFIRST,MAX_FREQ,SS_PIN>::read;
-  using SPI::Device<0,MSBFIRST,MAX_FREQ,SS_PIN>::write;
-  using SPI::Device<0,MSBFIRST,MAX_FREQ,SS_PIN>::release;
+  using SPI::Device<0,MSBFIRST,FREQ,SS_PIN>::acquire;
+  using SPI::Device<0,MSBFIRST,FREQ,SS_PIN>::transfer;
+  using SPI::Device<0,MSBFIRST,FREQ,SS_PIN>::read;
+  using SPI::Device<0,MSBFIRST,FREQ,SS_PIN>::write;
+  using SPI::Device<0,MSBFIRST,FREQ,SS_PIN>::release;
 };
 #endif
