@@ -54,8 +54,8 @@
 #define USE_HARDWARE_TWI
 
 // Configure: Hardware TWI bus clock frequency
-#define FREQ 800000UL
-// #define FREQ 400000UL
+// #define FREQ 800000UL
+#define FREQ 400000UL
 // #define FREQ 100000UL
 
 #if defined(USE_SOFTWARE_TWI)

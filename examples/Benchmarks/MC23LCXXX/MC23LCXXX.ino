@@ -1,33 +1,15 @@
-/*
- * spi.FREQ(MHz) = 8
- * sram.SIZE(kbyte) = 128
- *
- * write(N, us, us/byte, kbyte/s)
- * 1, 24, 24.00, 41.67
- * 10, 40, 4.00, 250.00
- * 100, 172, 1.72, 581.40
- * 1000, 1468, 1.47, 681.20
- *
- * read(N, us, us/byte, kbyte/s)
- * 1, 24, 24.00, 41.67
- * 10, 36, 3.60, 277.78
- * 100, 156, 1.56, 641.03
- * 1000, 1344, 1.34, 744.05
- */
-
 #include "Storage.h"
 #include "GPIO.h"
 #include "SPI.h"
-#include "Driver/MC23LC1024.h"
+#include "Driver/MC23LCXXX.h"
 
-// Select SPI bus manager implementation
-// #define USE_SOFTWARE_SPI
-#define USE_HARDWARE_SPI
+// Configure: SPI bus manager implementation
+#define USE_SOFTWARE_SPI
 
 #if defined(USE_SOFTWARE_SPI)
 #include "Software/SPI.h"
 Software::SPI<BOARD::D11, BOARD::D12, BOARD::D13> spi;
-#elif defined(USE_HARDWARE_SPI)
+#else
 #include "Hardware/SPI.h"
 Hardware::SPI spi;
 #endif
